@@ -1,0 +1,57 @@
+# Builds the provider plugin binary for all supported platforms, generates the
+# release artifacts (per-OS tarballs, SHA256SUMS, pulumi-plugin.json) and
+# attaches the provider schema to the GitHub release.
+#
+# Release engineering flow:
+#   1. release-please (release-please.yml) bumps versions, maintains CHANGELOG,
+#      and on merge creates the version tag (vX.Y.Z, no component prefix) and
+#      a GitHub release.
+#   2. This file runs on that tag and uploads the plugin binaries. Because the
+#      GitHub release already exists (created by release-please), we use
+#      mode: keep-existing so goreleaser attaches artifacts without clobbering
+#      the changelog release notes.
+#
+# Archive naming follows Pulumi's plugin download convention:
+#   pulumi-resource-rustrak-v<version>-<os>-<arch>.tar.gz
+# The version is passed via PLUGIN_VERSION (plain semver, no "v"), which is
+# also injected into the binary via ldflags so the provider reports the exact
+# version Pulumi expects.
+version: 2
+
+project_name: pulumi-provider-rustrak
+
+before:
+  hooks:
+    - go test ./...
+
+builds:
+  - id: provider
+    main: ./cmd/pulumi-resource-rustrak
+    binary: pulumi-resource-rustrak
+    ldflags:
+      - -s -w
+      - -X 'main.version={{ .Env.PLUGIN_VERSION }}'
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+
+archives:
+  - id: provider-archive
+    formats: [tar.gz]
+    name_template: "pulumi-resource-rustrak-v{{ .Env.PLUGIN_VERSION }}-{{ .Os }}-{{ .Arch }}"
+    files:
+      - pulumi-plugin.json
+
+checksum:
+  name_template: "SHA256SUMS.txt"
+
+release:
+  mode: keep-existing
+  extra_files:
+    - glob: ./schema.json

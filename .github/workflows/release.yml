@@ -1,0 +1,65 @@
+name: release
+
+# Fired by the tag release-please creates when a release PR is merged: vX.Y.Z
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Pulumi CLI
+        run: |
+          curl -fsSL https://get.pulumi.com | sh
+          echo "$HOME/.pulumi/bin" >> "$GITHUB_PATH"
+
+      - name: Install goreleaser
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          version: latest
+          install-only: true
+
+      - name: Set release version
+        run: echo "PLUGIN_VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+
+      # Build with the release version so the binary and the generated schema
+      # report exactly what Pulumi expects for this release.
+      - name: Generate schema
+        run: make schema VERSION="$PLUGIN_VERSION"
+
+      - name: Release plugin binaries
+        # goreleaser attaches artifacts to the GitHub release created by
+        # release-please (mode: keep-existing in .goreleaser.yml).
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: goreleaser release --clean
+
+      - name: Publish SDK to npm
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          make build-sdk VERSION="$PLUGIN_VERSION"
+          cd sdk/nodejs/bin
+          if [ -n "$NPM_TOKEN" ]; then
+            echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > .npmrc
+            npm publish --access public
+          else
+            npm pack --dry-run
+          fi

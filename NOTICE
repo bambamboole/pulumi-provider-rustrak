@@ -1,0 +1,8 @@
+pulumi-provider-rustrak
+
+Apache License 2.0 contributions copyright (c) 2026 the authors
+(https://github.com/bambamboole/pulumi-provider-rustrak).
+
+The shapes of the Rustrak API fields are informed by the OpenAPI document in
+the Rustrak repository (https://github.com/rustrak/rustrak, apps/server/openapi.json).
+Used for reference only; no code is vendored.

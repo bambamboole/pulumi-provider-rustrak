@@ -1,0 +1,9 @@
+{
+    "resource": true,
+    "name": "rustrak",
+    "version": "0.0.0",
+    "apiVersion": "v1",
+    "server": {
+        "grpc": true
+    }
+}

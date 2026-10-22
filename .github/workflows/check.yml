@@ -1,0 +1,61 @@
+name: check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  go:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Lint
+        uses: golangci/golangci-lint-action@v8
+        with:
+          version: v2.13
+
+      - name: Test
+        run: go test ./...
+
+      - name: Verify go.mod and go.sum are tidy
+        run: |
+          go mod tidy
+          git diff --exit-code -- go.mod go.sum
+
+      - name: Install Pulumi CLI
+        run: |
+          curl -fsSL https://get.pulumi.com | sh
+          echo "$HOME/.pulumi/bin" >> "$GITHUB_PATH"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Verify schema and SDK are up to date
+        run: |
+          make schema
+          test -s schema.json
+          make gen-sdk
+          # The lockfile differs between npm versions (peer flags); it is not part of the drift check.
+          git diff --exit-code -- sdk/nodejs ':!sdk/nodejs/package-lock.json'
+
+  sdk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: sdk/nodejs/package-lock.json
+      - run: make build-sdk

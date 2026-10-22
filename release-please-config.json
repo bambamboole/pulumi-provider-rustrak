@@ -1,0 +1,24 @@
+{
+  "packages": {
+    ".": {
+      "release-type": "go",
+      "package-name": "pulumi-provider-rustrak",
+      "include-component-in-tag": false,
+      "bump-minor-pre-major": true,
+      "initial-version": "0.1.0",
+      "changelog-types": [
+        { "type": "feat", "section": "Features", "hidden": false },
+        { "type": "fix", "section": "Bug Fixes", "hidden": false },
+        { "type": "docs", "section": "Documentation", "hidden": false },
+        { "type": "refactor", "section": "Refactors", "hidden": false },
+        { "type": "build", "section": "Build", "hidden": false },
+        { "type": "chore", "section": "Chores", "hidden": false }
+      ],
+      "extra-files": [
+        "pulumi-plugin.json",
+        "sdk/nodejs/package.json",
+        { "type": "json", "path": "sdk/nodejs/package.json", "jsonpath": "$.pulumi.version" }
+      ]
+    }
+  }
+}
