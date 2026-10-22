@@ -1,6 +1,6 @@
 {
   "name": "@bambamboole/pulumi-rustrak",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "homepage": "https://github.com/rustrak/rustrak",
   "repository": "https://github.com/bambamboole/pulumi-provider-rustrak",
   "license": "Apache-2.0",
@@ -17,7 +17,7 @@
   "pulumi": {
     "resource": true,
     "name": "rustrak",
-    "version": "0.0.0",
+    "version": "0.1.0",
     "server": "https://github.com/bambamboole/pulumi-provider-rustrak/releases/download/v$%7BVERSION%7D"
   },
   "main": "index.js",
